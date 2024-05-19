@@ -10,6 +10,6 @@ export class UserController {
 
   @Post()
   create(@Body()input: CreateUserDto) {
-    return this.userSvc.Create(input);
+    return this.userSvc.create(input);
   }
 }

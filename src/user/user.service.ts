@@ -14,11 +14,11 @@ export class UsersService {
     private readonly postRepo: PostRepository<Post>,
   ) { }
 
-  async Create(input: CreateUserDto){
+  async create(input: CreateUserDto){
     return this.userRepo.create(input);
   }
 
-  async Delete(id: string){
+  async delete(id: string){
     return this.userRepo.delete(id);
   }
 
