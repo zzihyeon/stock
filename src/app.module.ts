@@ -5,6 +5,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UsersService } from './user/user.service';
 import { User, UserSchema } from './user/user.schema';
 import { Post, PostSchema } from './post/post.schema';
+import { UserRepository } from './user/user.repository';
+import { PostRepository } from './post/post.repository';
+import { UserController } from './user/user.controller';
+import { PostController } from './post/post.controller';
 
 @Module({
   imports: [
@@ -14,7 +18,7 @@ import { Post, PostSchema } from './post/post.schema';
       { name: Post.name, schema: PostSchema }
     ]),
   ],
-  controllers: [AppController],
-  providers: [AppService, UsersService],
+  controllers: [UserController, PostController],
+  providers: [AppService, UsersService, UserRepository, PostRepository],
 })
 export class AppModule {}

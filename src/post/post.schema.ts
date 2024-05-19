@@ -11,9 +11,18 @@ export class Post extends Document {
   @Prop({ required: true })
   content: string;
 
+  @Prop()
+  images: string[];
+
+  @Prop()
+  date: Date;
+
   @Prop({ type: Types.ObjectId, ref: 'User' })
   author: User | Types.ObjectId;
+
+  @Prop({ default: false })
+  deletd: boolean;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);
-PostSchema.index({title: 1},{unique: true})
+PostSchema.index({ user: 1 })
