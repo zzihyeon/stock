@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { ApiResponse } from '@nestjs/swagger';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { Posts } from './post.schema';
 import { PostsService } from './post.service';
 
 @Controller('post')
@@ -9,11 +11,17 @@ export class PostController {
     private readonly postSvc: PostsService
   ) { }
 
+  @ApiResponse({
+    type: Posts
+  })
   @Post()
   create(@Body() input: CreatePostDto) {
     return this.postSvc.create(input);
   }
 
+  @ApiResponse({
+    type: Posts
+  })
   @Put(':id')
   update(@Body() input: UpdatePostDto, @Param('id') id: string) {
     return this.postSvc.update(id, input);

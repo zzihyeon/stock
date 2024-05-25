@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { PostRepository } from 'src/post/post.repository';
-import { Post } from 'src/post/post.schema';
+import { Posts } from 'src/post/post.schema';
 import { UserRepository } from 'src/user/user.repository';
 import { User } from 'src/user/user.schema';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -12,7 +12,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 export class PostsService {
   constructor(
     private readonly userRepo: UserRepository<User>,
-    private readonly postRepo: PostRepository<Post>,
+    private readonly postRepo: PostRepository<Posts>,
   ) { }
 
   async create(input: CreatePostDto) {
