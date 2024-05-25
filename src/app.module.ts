@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersService } from './user/user.service';
@@ -9,6 +8,8 @@ import { UserRepository } from './user/user.repository';
 import { PostRepository } from './post/post.repository';
 import { UserController } from './user/user.controller';
 import { PostController } from './post/post.controller';
+import { PostsService } from './post/post.service';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { PostController } from './post/post.controller';
       { name: Post.name, schema: PostSchema }
     ]),
   ],
-  controllers: [UserController, PostController],
-  providers: [AppService, UsersService, UserRepository, PostRepository],
+  controllers: [AppController, UserController, PostController],
+  providers: [AppService, UsersService, PostsService, UserRepository, PostRepository],
 })
-export class AppModule {}
+export class AppModule { }
