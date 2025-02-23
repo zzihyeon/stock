@@ -10,6 +10,8 @@ import { UserController } from './user/user.controller';
 import { PostController } from './post/post.controller';
 import { PostsService } from './post/post.service';
 import { AppController } from './app.controller';
+import { AdminModule } from './admin/admin.module';
+import { redisConfig } from './common/config/redis.config';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { AppController } from './app.controller';
       { name: User.name, schema: UserSchema },
       { name: Posts.name, schema: PostSchema }
     ]),
+    redisConfig,
+    AdminModule,
   ],
   controllers: [AppController, UserController, PostController],
   providers: [AppService, UsersService, PostsService, UserRepository, PostRepository],
