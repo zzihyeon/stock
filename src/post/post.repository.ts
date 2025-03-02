@@ -6,7 +6,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 
 @Injectable()
 export class PostRepository<T extends Document> {
-  constructor(@InjectModel('Posts') private readonly model: Model<T>) { }
+  constructor(@InjectModel('Post') private readonly model: Model<T>) { }
 
   async getSession() {
     return this.model.db.startSession()

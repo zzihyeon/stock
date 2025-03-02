@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { AdminService } from './admin.service';
-import { CreateUserAuthorityDto } from './dto/create-user-authority.dto';
-import { UpdateUserAuthorityDto } from './dto/update-user-authority.dto';
-import { PreventDuplicateRequest } from '../common/decorators/prevent-duplicate-request.decorator';
-import { CacheResponse } from '../common/decorators/cache-response.decorator';
+import { AdminService } from '#/admin/admin.service';
+import { CreateUserAuthorityDto } from '#/admin/dto/create-user-authority.dto';
+import { UpdateUserAuthorityDto } from '#/admin/dto/update-user-authority.dto';
+import { PreventDuplicateRequest } from '#/common/decorators/prevent-duplicate-request.decorator';
+import { CacheResponse } from '#/common/decorators/cache-response.decorator';
 import { Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -13,7 +13,7 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  ) { }
 
   @Post('authority')
   @PreventDuplicateRequest(5)

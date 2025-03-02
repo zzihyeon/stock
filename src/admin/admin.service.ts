@@ -1,37 +1,37 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UserAuthority, UserAuthorityDocument } from './schemas/user-authority.schema';
-import { CreateUserAuthorityDto } from './dto/create-user-authority.dto';
-import { UpdateUserAuthorityDto } from './dto/update-user-authority.dto';
+import { UserAuthority } from '#/admin/schemas/user-authority.schema';
+import { CreateUserAuthorityDto } from '#/admin/dto/create-user-authority.dto';
+import { UpdateUserAuthorityDto } from '#/admin/dto/update-user-authority.dto';
 
 @Injectable()
 export class AdminService {
   constructor(
-    @InjectModel(UserAuthority.name)
-    private userAuthorityModel: Model<UserAuthorityDocument>,
-  ) {}
+    @InjectModel(UserAuthority.name) private userAuthorityModel: Model<UserAuthority>
+  ) { }
 
   async create(createUserAuthorityDto: CreateUserAuthorityDto): Promise<UserAuthority> {
-    const createdAuthority = new this.userAuthorityModel(createUserAuthorityDto);
-    return createdAuthority.save();
+    return await this.userAuthorityModel.create(createUserAuthorityDto);
   }
 
-  async findAll(): Promise<UserAuthority[]> {
-    return this.userAuthorityModel.find().exec();
+  async findAll() {
+    return await this.userAuthorityModel.find();
   }
 
-  async findOne(userId: string): Promise<UserAuthority> {
-    return this.userAuthorityModel.findOne({ userId }).exec();
+  async findOne(userId: string) {
+    return await this.userAuthorityModel.findOne({ userId });
   }
 
-  async update(userId: string, updateUserAuthorityDto: UpdateUserAuthorityDto): Promise<UserAuthority> {
-    return this.userAuthorityModel
-      .findOneAndUpdate({ userId }, updateUserAuthorityDto, { new: true })
-      .exec();
+  async update(userId: string, updateUserAuthorityDto: UpdateUserAuthorityDto) {
+    return await this.userAuthorityModel.findOneAndUpdate(
+      { userId },
+      updateUserAuthorityDto,
+      { new: true }
+    );
   }
 
-  async remove(userId: string): Promise<UserAuthority> {
-    return this.userAuthorityModel.findOneAndDelete({ userId }).exec();
+  async remove(userId: string) {
+    return await this.userAuthorityModel.findOneAndDelete({ userId });
   }
-} 
+}  

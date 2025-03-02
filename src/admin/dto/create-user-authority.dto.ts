@@ -1,11 +1,12 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { UserAuthorityType } from '../enums/user-authority.enum';
+import { IsString, IsNotEmpty, IsEnum } from 'class-validator';
 
 export class CreateUserAuthorityDto {
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   userId: string;
 
+  @IsEnum(UserAuthorityType)
   @IsNotEmpty()
-  @IsNumber()
-  level: number;
+  authority: UserAuthorityType;
 } 

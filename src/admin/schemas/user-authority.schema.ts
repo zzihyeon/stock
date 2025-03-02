@@ -1,21 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
+import { UserAuthorityType } from '../enums/user-authority.enum';
 
-export type UserAuthorityDocument = UserAuthority & Document;
+export type UserAuthorityDocument = HydratedDocument<UserAuthority>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class UserAuthority {
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   userId: string;
 
-  @Prop({ required: true, default: 1 })
-  level: number;
-
-  @Prop({ default: Date.now })
-  createdAt: Date;
-
-  @Prop({ default: Date.now })
-  updatedAt: Date;
+  @Prop({ required: true, enum: UserAuthorityType, default: UserAuthorityType.GUEST })
+  authority: UserAuthorityType;
 }
 
 export const UserAuthoritySchema = SchemaFactory.createForClass(UserAuthority); 

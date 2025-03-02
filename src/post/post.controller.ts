@@ -3,12 +3,12 @@ import { ApiResponse } from '@nestjs/swagger';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Posts } from './post.schema';
-import { PostsService } from './post.service';
+import { PostService } from './post.service';
 
 @Controller('post')
 export class PostController {
   constructor(
-    private readonly postSvc: PostsService
+    private readonly postSvc: PostService
   ) { }
 
   @ApiResponse({

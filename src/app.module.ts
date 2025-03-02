@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UsersService } from './user/user.service';
+import { UserService } from './user/user.service';
 import { User, UserSchema } from './user/user.schema';
 import { Posts, PostSchema } from './post/post.schema';
 import { UserRepository } from './user/user.repository';
 import { PostRepository } from './post/post.repository';
 import { UserController } from './user/user.controller';
 import { PostController } from './post/post.controller';
-import { PostsService } from './post/post.service';
+import { PostService } from './post/post.service';
 import { AppController } from './app.controller';
 import { AdminModule } from './admin/admin.module';
 import { redisConfig } from './common/config/redis.config';
@@ -24,6 +24,6 @@ import { redisConfig } from './common/config/redis.config';
     AdminModule,
   ],
   controllers: [AppController, UserController, PostController],
-  providers: [AppService, UsersService, PostsService, UserRepository, PostRepository],
+  providers: [AppService, UserService, PostService, UserRepository, PostRepository],
 })
 export class AppModule { }

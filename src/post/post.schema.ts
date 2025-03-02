@@ -2,10 +2,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 import { Document, Types } from 'mongoose';
-import { User } from 'src/user/user.schema';
+import { User } from '#/user/user.schema';
 
 @Schema()
-export class Posts extends Document {
+export class Post extends Document {
   @ApiProperty()
   @Prop({ required: true })
   title: string;
@@ -30,5 +30,5 @@ export class Posts extends Document {
   deletd: boolean;
 }
 
-export const PostSchema = SchemaFactory.createForClass(Posts);
+export const PostSchema = SchemaFactory.createForClass(Post);
 PostSchema.index({ user: 1 })
