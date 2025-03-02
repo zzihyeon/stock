@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { ApiResponse } from '@nestjs/swagger';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { Posts } from './post.schema';
+import { Post as Posts } from './post.schema';
 import { PostService } from './post.service';
 
 @Controller('post')

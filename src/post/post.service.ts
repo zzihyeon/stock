@@ -4,14 +4,14 @@ import { Model } from 'mongoose';
 import { PostRepository } from '#/post/post.repository';
 import { Post } from '#/post/post.schema';
 import { UserRepository } from '#/user/user.repository';
-import { User } from '#/user/user.schema';
+import { UserDocument } from '#/user/user.schema';
 import { CreatePostDto } from '#/post/dto/create-post.dto';
 import { UpdatePostDto } from '#/post/dto/update-post.dto';
 
 @Injectable()
 export class PostService {
   constructor(
-    private readonly userRepo: UserRepository<User>,
+    private readonly userRepo: UserRepository<UserDocument>,
     private readonly postRepo: PostRepository<Post>,
   ) { }
 
@@ -20,7 +20,7 @@ export class PostService {
     session.startTransaction();
     try {
       const user = await this.userRepo.update(input.author, { $inc: { totalPosts: 1 } }, session);
-      const post = await this.postRepo.create({ title: input.title, content: input.content, author: user._id, date: new Date(), index: user.totalPosts }, session);
+      const post = await this.postRepo.create({ title: input.title, content: input.content, author: user._id.toString(), date: new Date(), index: user.totalPosts }, session);
       await session.commitTransaction();
       return post;
     } catch (error) {

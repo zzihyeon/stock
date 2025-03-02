@@ -9,7 +9,7 @@ export class UserAuthority {
   @Prop({ required: true, unique: true })
   userId: string;
 
-  @Prop({ required: true, enum: UserAuthorityType, default: UserAuthorityType.GUEST })
+  @Prop({ required: true, enum: UserAuthorityType, default: UserAuthorityType.GUEST, type: String })
   authority: UserAuthorityType;
 }
 

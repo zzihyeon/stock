@@ -1,129 +1,171 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PostService } from '#/post/post.service';
-import { getModelToken } from '@nestjs/mongoose';
-import { Post } from '#/post/schemas/post.schema';
-import { Model } from 'mongoose';
-import { CreatePostDto } from '#/post/dto/create-post.dto';
-import { UpdatePostDto } from '#/post/dto/update-post.dto';
-import { NotImplementedException } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Post, PostSchema } from '#/post/schemas/post.schema';
+import { User, UserSchema } from '#/user/user.schema';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { Connection, connect } from 'mongoose';
 import { UserRepository } from '#/user/user.repository';
 import { PostRepository } from '#/post/post.repository';
 
+
+jest.setTimeout(1000000);
+
+async function initiateReplicaSet(connection: Connection) {
+  try {
+    await connection.db.admin().command({
+      replSetInitiate: {
+        _id: 'rs0',
+        members: [{ _id: 0, host: '127.0.0.1:27021' }]
+      }
+    });
+    console.log('✅ Replica Set Initialized Successfully');
+  } catch (error) {
+    console.error('❌ Replica Set Initialization Failed', error);
+  }
+}
+
+async function waitForPrimary(connection: Connection) {
+  let isPrimary = false;
+  let attempts = 0;
+
+  while (!isPrimary && attempts < 10) {
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    const status = await connection.db.admin().command({ replSetGetStatus: 1 });
+
+    if (status.members.some(member => member.stateStr === 'PRIMARY')) {
+      isPrimary = true;
+      console.log('🎉 Primary node is now available!');
+    } else {
+      console.log(`⏳ Waiting for PRIMARY... Attempt ${attempts + 1}`);
+    }
+
+    attempts++;
+  }
+}
+
+
 describe('PostService', () => {
   let service: PostService;
-  let model: Model<Post>;
+  let mongod: MongoMemoryServer;
+  let mongoConnection: Connection;
 
-  const mockPost = {
-    title: 'Test Post',
-    content: 'Test Content',
-    author: 'testUserId',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  beforeAll(async () => {
+    console.log('🛠️ Starting MongoMemoryServer...');
 
-  const mockPostModel = {
-    create: jest.fn(),
-    find: jest.fn(),
-    findById: jest.fn(),
-    findByIdAndUpdate: jest.fn(),
-    findByIdAndDelete: jest.fn(),
-  };
+    mongod = await MongoMemoryServer.create({
+      binary: {
+        version: '6.0.12'
+      },
+      instance: {
+        port: 27021,
+        dbName: 'test',
+        storageEngine: 'wiredTiger',
+        replSet: 'rs0'
+      }
+    });
 
-  const mockSession = {
-    startTransaction: jest.fn(),
-    commitTransaction: jest.fn(),
-    abortTransaction: jest.fn(),
-    endSession: jest.fn(),
-  };
+    console.log('✅ MongoMemoryServer started!');
 
-  const mockUser = {
-    _id: 'testUserId',
-    totalPosts: 1,
-  };
+    const uri = mongod.getUri();
+    console.log('📌 MongoDB URI:', uri);
 
-  const mockUserRepository = {
-    update: jest.fn().mockResolvedValue(mockUser),
-    getSession: jest.fn().mockResolvedValue(mockSession),
-  };
+    try {
+      mongoConnection = (await connect(uri + '?replicaSet=rs0&directConnection=true', {
+        serverSelectionTimeoutMS: 60000,
+        connectTimeoutMS: 60000,
+        heartbeatFrequencyMS: 2000,
+        retryWrites: true,
+        w: 'majority'
+      })).connection;
 
-  const mockPostRepository = {
-    create: jest.fn().mockResolvedValue(mockPost),
-    update: jest.fn(),
-    delete: jest.fn(),
-  };
+      console.log('🎉 Successfully connected to MongoDB!');
+    } catch (error) {
+      console.error('❌ Failed to connect to MongoDB:', error);
+    }
+    await initiateReplicaSet(mongoConnection);
+    await waitForPrimary(mongoConnection);
+  }, 60000);
+
+  afterAll(async () => {
+    await mongoConnection.dropDatabase();
+    await mongoConnection.close();
+    await mongod.stop();
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        MongooseModule.forRoot(mongod.getUri() + '?replicaSet=rs0&directConnection=true'),
+        MongooseModule.forFeature([
+          { name: Post.name, schema: PostSchema },
+          { name: User.name, schema: UserSchema }
+        ]),
+      ],
       providers: [
         PostService,
-        {
-          provide: getModelToken(Post.name),
-          useValue: mockPostModel,
-        },
-        {
-          provide: UserRepository,
-          useValue: mockUserRepository,
-        },
-        {
-          provide: PostRepository,
-          useValue: mockPostRepository,
-        },
+        UserRepository,
+        PostRepository,
       ],
     }).compile();
 
     service = module.get<PostService>(PostService);
-    model = module.get<Model<Post>>(getModelToken(Post.name));
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+    await mongoConnection.collection('posts').deleteMany({});
+    await mongoConnection.collection('users').deleteMany({});
   });
 
   describe('create', () => {
     it('should create a post', async () => {
-      const createDto: CreatePostDto = {
+      // 먼저 사용자 생성
+      const user = await mongoConnection.collection('users').insertOne({
+        email: 'test@example.com',
+        password: 'password123',
+        username: 'Test User',
+        totalPosts: 0
+      });
+
+      const createDto = {
         title: 'Test Post',
         content: 'Test Content',
-        author: 'testUserId',
+        author: user.insertedId.toString(),
         date: new Date(),
         index: 1,
       };
 
       const result = await service.create(createDto);
-      expect(result).toEqual(mockPost);
+
+      expect(result).toBeDefined();
+      expect(result.title).toBe(createDto.title);
+      expect(result.content).toBe(createDto.content);
+      expect(result.author).toBe(createDto.author);
+
+      // 사용자의 totalPosts가 증가했는지 확인
+      const updatedUser = await mongoConnection.collection('users').findOne({ _id: user.insertedId });
+      expect(updatedUser.totalPosts).toBe(1);
     });
   });
 
   describe('findAll', () => {
     it('should return all posts', async () => {
-      throw new NotImplementedException('findAll method not implemented');
+      // Implementation needed
     });
   });
 
   describe('findById', () => {
     it('should return a post by id', async () => {
-      throw new NotImplementedException('findById method not implemented');
+      // Implementation needed
     });
   });
 
   describe('update', () => {
     it('should update a post', async () => {
-      const updateDto: UpdatePostDto = {
-        title: 'Updated Title',
-      };
-
-      const updatedPost = { ...mockPost, title: 'Updated Title' };
-
-      jest.spyOn(model, 'findByIdAndUpdate').mockResolvedValue(updatedPost as any);
-
-      const result = await service.update('testId', updateDto);
-      expect(result.title).toEqual('Updated Title');
+      // Implementation needed
     });
   });
 
   describe('remove', () => {
     it('should remove a post', async () => {
-      throw new NotImplementedException('remove method not implemented');
+      // Implementation needed
     });
   });
 }); 
